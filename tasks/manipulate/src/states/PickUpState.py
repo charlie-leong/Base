@@ -18,29 +18,42 @@ class PickUpItem(smach.State):
 
     def execute(self, ud):
         open_gripper()
-
-        object_pose = ud.coord_input
-
-        goToObject(object_pose, self.move_group)
+        removeBehindTable(self.move_group)
         rospy.sleep(2)
-        pre_pick(object_pose, self.move_group)
-        rospy.sleep(2)
-        grasp = pick(object_pose, self.move_group)
-        raised = lift_item(grasp, self.move_group)
+
+        self.object_pose = ud.coord_input
+        object_type = "down" #top, side, down
+
+        if object_type == "down":
+            self.lowered_approach_grasping()
+        elif object_type == "forward":
+            self.forward_approach_grasping()
+
+        raised = lift_item(self.object_pose, self.move_group)
         place(raised, self.move_group)
         open_gripper()
         return 'suceeded'
 
+    def lowered_approach_grasping(self):
+        pre_pick(self.object_pose, self.move_group)
+        rospy.sleep(2)
+        pick(self.object_pose, self.move_group)
+    
+    def forward_approach_grasping(self, object):
+        rospy.sleep(2)
+    
+    def top_down_approach_grasping(self):
+        rospy.sleep(2)
+
+
 def open_gripper():
     pub_gripper_controller = rospy.Publisher('/gripper_controller/command', JointTrajectory, queue_size=1)
 
-    # loop continues until the grippers is opened
+    # loop continues until the grippers are opened
     for i in range(10):
         trajectory = JointTrajectory()
 
-        # call joint group for take object
-        trajectory.joint_names = [
-        'gripper_left_finger_joint', 'gripper_right_finger_joint']
+        trajectory.joint_names = ['gripper_left_finger_joint', 'gripper_right_finger_joint']
 
         trajectory_points = JointTrajectoryPoint()
 
@@ -68,8 +81,7 @@ def close_gripper():
         trajectory = JointTrajectory()
 
         # call joint group for take object
-        trajectory.joint_names = [
-            'gripper_left_finger_joint', 'gripper_right_finger_joint']
+        trajectory.joint_names = ['gripper_left_finger_joint', 'gripper_right_finger_joint']
 
         trajectory_points = JointTrajectoryPoint()
 
@@ -86,42 +98,24 @@ def close_gripper():
         # interval to start next movement
         rospy.sleep(0.1)
 
-def goToObject(object_pose, move_group):
+def removeBehindTable(move_group):
     """
-        Puts the manipulator in the right position to take the object
-    Args:
-        object_pose (msg): get object pose
-
-    Returns:
-        response: operation success status
+        moves robot arm from the tucked position behind the table
+        allows it to move more freely without colliding with table top
     """
 
-    # define final orientation of the EE
-    object_pose.orientation = Quaternion(0.5, 0.5, 0.5, 0.5)
-
-    # set vertical pose of the EE taking care of its shape
-    object_pose.position.z += 0.2
-
-    # save grasp pose
-    # grasp_pose = copy.deepcopy(object_pose.pose)
-    grasp_pose = object_pose
-
-    # define distance between EE & object
-    grasp_pose.position.y -= 0.35
-    grasp_pose.position.x -= 0.1
-
-    # for some reason the code hinges on the existence of this line ??
-    object_pose.position.y = -0.2
-
-    # grasp_pose.position.z += 0.2
+    pose = Pose()
+    pose.position.x = 0.5
+    pose.position.y = -0.2
+    pose.position.z = 0.9
+    pose.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5)
 
     rospy.loginfo('PickObject - attempting to reach pre grasp pose')
 
-    move_group.set_pose_target(object_pose)
+    move_group.set_pose_target(pose)
     move_group.go(wait=True)
     move_group.stop()
     move_group.clear_pose_targets()
-    # object_pose.position.y = -0.2
 
 def pre_pick(object_pose, move_group):
     open_gripper()

@@ -35,7 +35,7 @@ def main():
                                remapping={'coord_input': 'coord_data'}
                                )
 
-    sm.userdata.first_item = 'test'
+    sm.userdata.first_item = 'cup'
     sm.execute()
 
 if __name__ == '__main__':
