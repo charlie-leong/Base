@@ -22,28 +22,85 @@ class PickUpItem(smach.State):
         rospy.sleep(2)
 
         self.object_pose = ud.coord_input
-        object_type = "down" #top, side, down
+        object_type = "top" #top, side, down
 
         if object_type == "down":
+            self.grap_quat = Quaternion(0.5, 0.5, 0.5, 0.5)
             self.lowered_approach_grasping()
         elif object_type == "forward":
             self.forward_approach_grasping()
+        elif object_type == "top":
+            self.top_down_approach_grasping()
+
+        #close gripper
+        rospy.loginfo('PickObject - closing gripper!')
+        close_gripper()
 
         raised = lift_item(self.object_pose, self.move_group)
-        place(raised, self.move_group)
-        open_gripper()
+        # place(raised, self.move_group)
+        # open_gripper()
         return 'suceeded'
 
     def lowered_approach_grasping(self):
-        pre_pick(self.object_pose, self.move_group)
+        '''
+            for longer objects that would benefit from the gripper moving downward around it
+            eg. cylinder, mug, bottle
+
+            goes to pregrasp pose above the item
+            lowers so the grippers are around the item
+        '''
+        # "test": [0.65, -0.04998, 0.86445],
+        grasp_pose = self.object_pose
+        grasp_pose.position.y -= 0.2
+        grasp_pose.position.z += 0.2
+        grasp_pose.orientation = Quaternion(0.5, 0.5, 0.5, 0.5)
+
+        rospy.loginfo('pre grasp pose')
+        self.move_group.set_pose_target(grasp_pose)
+        self.move_group.go(wait=True)
+        self.move_group.stop()
+        self.move_group.clear_pose_targets()
         rospy.sleep(2)
-        pick(self.object_pose, self.move_group)
+
+        grasp_pose.position.z -= 0.2
+
+        rospy.loginfo('grasp pose')
+        self.move_group.set_pose_target(grasp_pose)
+        self.move_group.go(wait=True)
+        self.move_group.stop()
+        self.move_group.clear_pose_targets()
+
+        rospy.sleep(2)
     
-    def forward_approach_grasping(self, object):
+    def forward_approach_grasping(self):
         rospy.sleep(2)
     
     def top_down_approach_grasping(self):
+        # grasp_pose = Pose()
+        grasp_pose = self.object_pose
+        # grasp_pose.position.x -= 0.2
+        grasp_pose.position.y -= 0.1
+        grasp_pose.position.z += 0.3
+        grasp_pose.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5) # pointing downwards !!!
+
+        rospy.loginfo('pre grasp pose')
+        self.move_group.set_pose_target(grasp_pose)
+        self.move_group.go(wait=True)
+        self.move_group.stop()
+        self.move_group.clear_pose_targets()
+        rospy.sleep(3)
+
+        grasp_pose.position.z -= 0.1
+
+        rospy.loginfo('grasp pose')
+        self.move_group.set_pose_target(grasp_pose)
+        self.move_group.go(wait=True)
+        self.move_group.stop()
+        self.move_group.clear_pose_targets()
+
         rospy.sleep(2)
+
+
 
 
 def open_gripper():
@@ -79,23 +136,18 @@ def close_gripper():
     # loop continues until the grippers is closed
     for i in range(10):
         trajectory = JointTrajectory()
-
-        # call joint group for take object
         trajectory.joint_names = ['gripper_left_finger_joint', 'gripper_right_finger_joint']
-
         trajectory_points = JointTrajectoryPoint()
 
         # define the gripper joints configuration
         trajectory_points.positions = [0.0, 0.0]
 
-        # define time duration
         trajectory_points.time_from_start = rospy.Duration(1.0)
 
         trajectory.points.append(trajectory_points)
 
         pub_gripper_controller.publish(trajectory)
 
-        # interval to start next movement
         rospy.sleep(0.1)
 
 def removeBehindTable(move_group):
@@ -108,7 +160,7 @@ def removeBehindTable(move_group):
     pose.position.x = 0.5
     pose.position.y = -0.2
     pose.position.z = 0.9
-    pose.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5)
+    pose.orientation = Quaternion(0.5, 0.5, 0.5, 0.5)
 
     rospy.loginfo('PickObject - attempting to reach pre grasp pose')
 
@@ -116,60 +168,14 @@ def removeBehindTable(move_group):
     move_group.go(wait=True)
     move_group.stop()
     move_group.clear_pose_targets()
-
-def pre_pick(object_pose, move_group):
-    open_gripper()
-
-    grasp_pose = object_pose
-    grasp_pose.position.x += 0.1
-    grasp_pose.position.y -=0.05
-
-    # move to grasp_pose
-    rospy.loginfo('PickObject - move to grasp_pose...')
-    move_group.set_pose_target(grasp_pose)
-    move_group.go(wait=True)
-    move_group.stop()
-    move_group.clear_pose_targets()
-
-    rospy.sleep(1)
-
-def pick(object_pose, move_group):
-    grasp_pose = object_pose
-    # grasp_pose.position.x += 0.05
-    grasp_pose.position.z -= 0.2
-
-    # move to grasp_pose
-    rospy.loginfo('PickObject - move to grasp_pose...')
-    move_group.set_pose_target(grasp_pose)
-    move_group.go(wait=True)
-    move_group.stop()
-    move_group.clear_pose_targets()
-
-    #close gripper
-    rospy.loginfo('PickObject - closing gripper...')
-    close_gripper()
     rospy.sleep(2)
-
-    return grasp_pose
-
-    # rospy.loginfo('lifting !')
-
-    # define post_grasp_pose
-
-    # post_grasp_pose = object_pose
-    # post_grasp_pose.position.z += 0.3
-    # move_group.set_pose_target(post_grasp_pose)
-    # move_group.go(wait=True)
-
-    # rospy.sleep(1)
-
-    rospy.loginfo('PickObject - Done.')
 
 
 def lift_item(object_pose, move_group):
 
     grasp_pose = object_pose
     grasp_pose.position.z += 0.3
+    grasp_pose.orientation = Quaternion(0.5, 0.5, 0.5, 0.5)
 
     # move to grasp_pose
     rospy.loginfo('up !!')
@@ -187,6 +193,7 @@ def place(object_pose, move_group):
     place_pose = object_pose
     place_pose.position.z -= 0.2
     place_pose.position.y += 0.2
+    place_pose.orientation = Quaternion(0.5, 0.5, 0.5, 0.5)
     move_group.set_pose_target(place_pose)
     move_group.go(wait=True)
 

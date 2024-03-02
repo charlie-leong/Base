@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- written by serge -->
+
 <launch>
   <!-- <arg name="world"  default="$(find manipulate)/worlds/tables_and_item.world"/> -->
   <arg name="world"  default="$(find manipulate)/worlds/bowl.world"/>
@@ -68,5 +69,6 @@
 
   <node name="image_proc" pkg="image_proc" type="image_proc" ns="xtion/rgb"/>
   <node pkg="manipulate" type="item_manager.py" name="itemservice" output="screen"/> 
+  <node pkg="lasr_vision_yolov8" name="service" type="service" output="screen"/>
 
 </launch>

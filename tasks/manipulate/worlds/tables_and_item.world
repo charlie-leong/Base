@@ -3114,7 +3114,7 @@
       </camera>
     </gui>
     <model name='hammer'>
-      <static>1</static>
+      <static>0</static>
       <link name='link'>
         <collision name='collision'>
           <geometry>

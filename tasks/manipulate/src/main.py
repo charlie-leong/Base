@@ -11,6 +11,7 @@ from math import pi
 
 import numpy as np
 from scipy.spatial.transform import Rotation 
+import math
 
 def open_gripper():
     pub_gripper_controller = rospy.Publisher(
@@ -178,27 +179,22 @@ print("AH")
 open_gripper()
 
 
-moveit_commander.roscpp_initialize(sys.argv)
-move_group = moveit_commander.MoveGroupCommander('arm_torso')
 
-# Gripper's neutral quaternion (when gripper is parallel to the table)
-# neutral_quaternion = np.array([0.5, 0.5, 0.5, 0.5])
 
-# # Define the desired direction (example: pointing towards positive x-axis)
-# desired_direction = np.array([1, 0, 0])  # Assuming x-axis, adjust as needed
 
-# # Find the rotation between the neutral direction and the desired direction
-# neutral_direction = np.array([0, 0, 1])  # Neutral direction when gripper is parallel to the table
-# rotation_axis = np.cross(neutral_direction, desired_direction)
-# rotation_angle = np.arccos(np.dot(neutral_direction, desired_direction))
+def rotate_quaternion_y(q, angle):
+    half_angle = angle / 2
+    sin_half_angle = math.sin(half_angle)
+    cos_half_angle = math.cos(half_angle)
 
-# # Create rotation quaternion
-# rotation_quaternion = R.from_rotvec(rotation_angle * rotation_axis).as_quat()
+    x = 0
+    y = sin_half_angle
+    z = 0
+    w = cos_half_angle
 
-# # Combine neutral and rotation quaternions to get the final orientation
-# desired_quaternion = R.from_quat(rotation_quaternion).inv() * R.from_quat(neutral_quaternion)
-
-# print("Desired Quaternion:", desired_quaternion.as_quat())
+    rotation_quaternion = Quaternion(x, y, z, w)
+    print(rotation_quaternion)
+    return quaternion_multiply(q, rotation_quaternion)
 
 def quaternion_multiply(q0, q1):
     x0, y0, z0, w0 = q0.x, q0.y, q0.z, q0.w
@@ -224,31 +220,39 @@ pose_1.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5)
 
 
 object_pose = Pose()
-# object_pose.orientation = Quaternion(0.5, 0.5, 0.5, 0.5)
-rot_quat = Quaternion(0.7, 0.7, 0, 0)  # 90* around X axis (W, X, Y, Z)
-# grasp_quat = rot_quat * Quaternion(0.5, 0.5, 0.5, 0.5)
-grasp_quat = quaternion_multiply(rot_quat, Quaternion(0.5, 0.5, 0.5, 0.5)) #HOLY FUCKING SHIT
-print(grasp_quat)
-object_pose.orientation = grasp_quat
+object_pose.orientation = Quaternion(0.5, 0.5, 0.5, 0.5)
 
-# set vertical pose of the EE taking care of its shape
+
 object_pose.position.z = 0.9
-
-# define distance between EE & object
 object_pose.position.x = 0.6-0.1
-
 # for some reason the code hinges on the existence of this line ??
 object_pose.position.y = -0.2
 
 moveit_commander.roscpp_initialize(sys.argv)
 move_group = moveit_commander.MoveGroupCommander('arm_torso')
+
  # behind table pose
-move_group.set_pose_target(object_pose)
-move_group.go(wait=True)
+# move_group.set_pose_target(object_pose)
+# move_group.go(wait=True)
 # rospy.sleep(3)
+
+
 # move_group.set_pose_target(pose_1)
 # move_group.go(wait=True)
 # rospy.sleep(3)
+
+#rotate
+rot_quat = Quaternion(0.7, 0.7, 0, 0)  # 90* around X axis (W, X, Y, Z)
+grasp_quat = quaternion_multiply(rot_quat, Quaternion(0.5, 0.5, 0.5, 0.5)) #HOLY FUCKING SHIT
+print(grasp_quat)
+
+bowl_next = object_pose
+bowl_next.position.x -= 0.06
+bowl_next.orientation = grasp_quat
+move_group.set_pose_target(bowl_next)
+move_group.go(wait=True)
+rospy.sleep(3)
+
 
 #hammer
 # close_gripper()
@@ -261,20 +265,41 @@ move_group.go(wait=True)
 # move_group.go(wait=True)
 # rospy.sleep(3)
 
-pose = Pose()
-pose.position.x = 0.4
-pose.position.y = -0
-pose.position.z = 0.65
-pose.orientation = Quaternion(0.7071, 0.7071, 0, 0)
 
-# rospy.loginfo('PickObject - attempting to reach pre grasp pose')
-
-# move_group.set_pose_target(pose)
+# angle_to_rotate = math.radians(1)  # Rotate by 1 degree (very slight rotation)
+# rotated_quaternion = rotate_quaternion_y(grasp_quat, angle_to_rotate)
+# bowl_next.orientation = rotated_quaternion
+# move_group.set_pose_target(bowl_next)
 # move_group.go(wait=True)
-# move_group.stop()
-# move_group.clear_pose_targets()
+# rospy.sleep(3)
 
 
+#bowl
+pose = Pose()
+pose.position.x = 0.5
+pose.position.y = -0
+pose.position.z = 0.7
+pose.orientation = grasp_quat
+
+move_group.set_pose_target(pose)
+move_group.go(wait=True)
+move_group.stop()
+move_group.clear_pose_targets()
+rospy.sleep(2)
+
+pick_pose = Pose()
+pick_pose.position.x = 0.63
+pick_pose.position.y = -0
+pick_pose.position.z = 0.69
+pick_pose.orientation = grasp_quat
+
+
+move_group.set_pose_target(pick_pose)
+move_group.go(wait=True)
+move_group.stop()
+move_group.clear_pose_targets()
+
+close_gripper()
 
 # move_group.set_pose_target(pose_3)
 # move_group.go(wait=True)
@@ -289,3 +314,49 @@ pose.orientation = Quaternion(0.7071, 0.7071, 0, 0)
 # open_gripper()
 
 
+def quaternion_from_two_vectors(a, b):
+    # Normalize vectors
+    a = normalize_vector(a)
+    b = normalize_vector(b)
+
+    # Calculate axis of rotation
+    axis = cross_product(a, b)
+    angle = math.acos(dot_product(a, b))
+    return quaternion_from_axis_angle(axis, angle)
+
+def normalize_vector(vec):
+    length = math.sqrt(vec.x**2 + vec.y**2 + vec.z**2)
+    return Quaternion(vec.x / length, vec.y / length, vec.z / length, 0)
+
+def dot_product(a, b):
+    return a.x * b.x + a.y * b.y + a.z * b.z
+
+def cross_product(a, b):
+    x = a.y * b.z - a.z * b.y
+    y = a.z * b.x - a.x * b.z
+    z = a.x * b.y - a.y * b.x
+    return Quaternion(x, y, z, 0)
+
+def quaternion_from_axis_angle(axis, angle):
+    half_angle = angle / 2
+    sin_half_angle = math.sin(half_angle)
+
+    x = axis.x * sin_half_angle
+    y = axis.y * sin_half_angle
+    z = axis.z * sin_half_angle
+    w = math.cos(half_angle)
+
+    return Quaternion(x, y, z, w)
+
+original_direction = Quaternion(0, 0, 1, 0)  # Forward direction
+target_direction = Quaternion(0.1, -0.5, -0.8, 0)  # Example target direction
+
+rotation_quaternion = quaternion_from_two_vectors(original_direction, target_direction)
+# Apply rotation to the original direction
+rotated_direction = quaternion_multiply(rotation_quaternion, original_direction)
+bowl_next = object_pose
+# bowl_next.position.x -= 0.06
+bowl_next.orientation = rotated_direction
+move_group.set_pose_target(bowl_next)
+move_group.go(wait=True)
+print("Rotated direction: ({}, {}, {}, {})".format(rotated_direction.x, rotated_direction.y, rotated_direction.z, rotated_direction.w))
