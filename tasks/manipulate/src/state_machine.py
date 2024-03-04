@@ -6,6 +6,7 @@ import smach
 from manipulate.srv import GetItemCoords
 from smach_ros import ServiceState
 from states.PickUpState import PickUpItem
+from states.LookAtObject import LookForItem
 # from states.GoToState import GoToPoint
 
 
@@ -23,10 +24,16 @@ def main():
                                     request_slots=['item'], response_slots=['coordinates']),
                                     transitions={'succeeded': 'PICK_UP_ITEM', 'preempted': 'aborted'},
                                     remapping={'item': 'first_item', 'coordinates': 'coord_data'}
+                                    # remapping={'item': 'first_item'}
                                     )  
 
         # smach.StateMachine.add('GO_TO_ITEM', GoToPoint(robot), 
         #                        transitions={'suceeded': 'finished', 'preempted': 'aborted'},
+        #                        remapping={'coord_input': 'coord_data'}
+        #                        )
+
+        # smach.StateMachine.add('LOOK_FOR_OBJECT', LookForItem(), 
+        #                        transitions={'suceeded': 'PICK_UP_ITEM', 'preempted': 'aborted'},
         #                        remapping={'coord_input': 'coord_data'}
         #                        )
 

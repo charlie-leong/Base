@@ -208,9 +208,9 @@ def quaternion_multiply(q0, q1):
     return Quaternion(x, y, z, w)
 
 pose_1 = Pose()
-pose_1.position.x = 0.639713
-pose_1.position.y = -0.1
-pose_1.position.z = 0.65+0.2
+pose_1.position.x = 0.6
+pose_1.position.y = -0.05
+pose_1.position.z = 0.65+0.3
 # pose_1.orientation.w = 0
 # pose_1.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5) # pointing downwards !!!
 # pose_1.orientation = Quaternion(0.5, -0.5, 0.5, 0.5) # upwards
@@ -232,38 +232,44 @@ moveit_commander.roscpp_initialize(sys.argv)
 move_group = moveit_commander.MoveGroupCommander('arm_torso')
 
  # behind table pose
-# move_group.set_pose_target(object_pose)
-# move_group.go(wait=True)
-# rospy.sleep(3)
+move_group.set_pose_target(object_pose)
+move_group.go(wait=True)
+rospy.sleep(3)
 
-
+#hammer
 # move_group.set_pose_target(pose_1)
 # move_group.go(wait=True)
 # rospy.sleep(3)
 
-#rotate
-rot_quat = Quaternion(0.7, 0.7, 0, 0)  # 90* around X axis (W, X, Y, Z)
-grasp_quat = quaternion_multiply(rot_quat, Quaternion(0.5, 0.5, 0.5, 0.5)) #HOLY FUCKING SHIT
-print(grasp_quat)
-
-bowl_next = object_pose
-bowl_next.position.x -= 0.06
-bowl_next.orientation = grasp_quat
-move_group.set_pose_target(bowl_next)
-move_group.go(wait=True)
-rospy.sleep(3)
-
-
-#hammer
-# close_gripper()
-# pose_pick = Pose()
-# pose_pick.position.x = 0.639713
-# pose_pick.position.y = -0.1
-# pose_pick.position.z = 0.65+0.2
-# pose_pick.orientation = Quaternion(0.5, -0.5, 0.5, 0.5) # upwards
-# move_group.set_pose_target(pose_pick)
+# pose_1.position.z -=0.12
+# move_group.set_pose_target(pose_1)
 # move_group.go(wait=True)
 # rospy.sleep(3)
+
+
+#rotate
+# rot_quat = Quaternion(0.7, 0.7, 0, 0)  # 90* around X axis (W, X, Y, Z)
+# grasp_quat = quaternion_multiply(rot_quat, Quaternion(0.5, 0.5, 0.5, 0.5)) #HOLY FUCKING SHIT
+# print(grasp_quat)
+
+# bowl_next = object_pose
+# bowl_next.position.x -= 0.06
+# bowl_next.orientation = grasp_quat
+# move_group.set_pose_target(bowl_next)
+# move_group.go(wait=True)
+# rospy.sleep(3)
+
+
+# hammer
+close_gripper()
+pose_pick = Pose()
+pose_pick.position.x = 0.639713
+pose_pick.position.y = -0.1
+pose_pick.position.z = 0.65+0.2
+pose_pick.orientation = Quaternion(0.5, -0.5, 0.5, 0.5) # upwards
+move_group.set_pose_target(pose_pick)
+move_group.go(wait=True)
+rospy.sleep(3)
 
 
 # angle_to_rotate = math.radians(1)  # Rotate by 1 degree (very slight rotation)
@@ -275,31 +281,31 @@ rospy.sleep(3)
 
 
 #bowl
-pose = Pose()
-pose.position.x = 0.5
-pose.position.y = -0
-pose.position.z = 0.7
-pose.orientation = grasp_quat
+# pose = Pose()
+# pose.position.x = 0.5
+# pose.position.y = -0
+# pose.position.z = 0.7
+# pose.orientation = grasp_quat
 
-move_group.set_pose_target(pose)
-move_group.go(wait=True)
-move_group.stop()
-move_group.clear_pose_targets()
-rospy.sleep(2)
+# move_group.set_pose_target(pose)
+# move_group.go(wait=True)
+# move_group.stop()
+# move_group.clear_pose_targets()
+# rospy.sleep(2)
 
-pick_pose = Pose()
-pick_pose.position.x = 0.63
-pick_pose.position.y = -0
-pick_pose.position.z = 0.69
-pick_pose.orientation = grasp_quat
+# pick_pose = Pose()
+# pick_pose.position.x = 0.63
+# pick_pose.position.y = -0
+# pick_pose.position.z = 0.69
+# pick_pose.orientation = grasp_quat
 
 
-move_group.set_pose_target(pick_pose)
-move_group.go(wait=True)
-move_group.stop()
-move_group.clear_pose_targets()
+# move_group.set_pose_target(pick_pose)
+# move_group.go(wait=True)
+# move_group.stop()
+# move_group.clear_pose_targets()
 
-close_gripper()
+# close_gripper()
 
 # move_group.set_pose_target(pose_3)
 # move_group.go(wait=True)

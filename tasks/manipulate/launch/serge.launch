@@ -2,8 +2,8 @@
 <!-- written by serge -->
 
 <launch>
-  <!-- <arg name="world"  default="$(find manipulate)/worlds/tables_and_item.world"/> -->
-  <arg name="world"  default="$(find manipulate)/worlds/bowl.world"/>
+  <arg name="world"  default="$(find manipulate)/worlds/tables_and_item.world"/>
+  <!-- <arg name="world"  default="$(find manipulate)/worlds/bowl.world"/> -->
 
 
   <arg name="robot"  default="titanium"/>

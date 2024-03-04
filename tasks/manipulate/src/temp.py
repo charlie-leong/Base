@@ -22,21 +22,21 @@ def look_to_point(point):
     phag.goal.pointing_frame = "/head_2_link"
     while not rospy.is_shutdown():
         phag.goal.target.point = point.position
-        # rospy.loginfo("Sending: " + str(phag))
         pub_head_topic.publish(phag)
         r.sleep()
-        # break
         response = detect_service(request)
 
         for detection in response.detected_objects:
-            # print(detection.name)
             if detection.name == "bowl":
-                print("AHHHHHHHHHHHHHHHHHHHHHHHHHH")
+                # print("AHHHHHHHHHHHHHHHHHHHHHHHHHH")
+                print(detection.name , detection.xywh)
+                # print(pcl)
 
 
 # create service proxy 
 detect_service = rospy.ServiceProxy('/yolov8/detect', YoloDetection)
 image = rospy.wait_for_message('xtion/rgb/image_raw', Image)
+pcl = rospy.wait_for_message('/xtion/depth_registered/points', PointCloud2)
 
 # create request
 request = YoloDetectionRequest()
@@ -50,14 +50,3 @@ pick_pose.position.x = 0.8
 pick_pose.position.y = -0
 pick_pose.position.z = 0.6
 look_to_point(pick_pose)
-
-# send request
-response = detect_service(request)
-# .. use request.detections 
-# DON"T ??????
-
-for detection in response.detected_objects:
-    # print(detection.name)
-    if detection.name == "bowl":
-        print("AHHHHHHHHHHHHHHHHHHHHHHHHHH")
-

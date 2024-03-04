@@ -10,7 +10,7 @@ import smach
 class PickUpItem(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['suceeded', 'preempted'],
-                             input_keys=['coord_input']
+                             input_keys=['coord_data']
                              )
         moveit_commander.roscpp_initialize(sys.argv)
         self.move_group = moveit_commander.MoveGroupCommander('arm_torso')
@@ -21,7 +21,8 @@ class PickUpItem(smach.State):
         removeBehindTable(self.move_group)
         rospy.sleep(2)
 
-        self.object_pose = ud.coord_input
+        # self.object_pose = ud.coord_input
+        self.object_pose = ud.coord_data
         object_type = "top" #top, side, down
 
         if object_type == "down":
@@ -79,7 +80,7 @@ class PickUpItem(smach.State):
         # grasp_pose = Pose()
         grasp_pose = self.object_pose
         # grasp_pose.position.x -= 0.2
-        grasp_pose.position.y -= 0.1
+        grasp_pose.position.y -= 0.06
         grasp_pose.position.z += 0.3
         grasp_pose.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5) # pointing downwards !!!
 
