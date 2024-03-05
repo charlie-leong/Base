@@ -23,10 +23,12 @@ class PickUpItem(smach.State):
 
         # self.object_pose = ud.coord_input
         self.object_pose = ud.coord_data
+        
+        # object_type = self.determine_object_type()
         object_type = "top" #top, side, down
 
         if object_type == "down":
-            self.grap_quat = Quaternion(0.5, 0.5, 0.5, 0.5)
+            self.grasp_quat = Quaternion(0.5, 0.5, 0.5, 0.5)
             self.lowered_approach_grasping()
         elif object_type == "forward":
             self.forward_approach_grasping()
@@ -74,13 +76,35 @@ class PickUpItem(smach.State):
         rospy.sleep(2)
     
     def forward_approach_grasping(self):
+        rot_quat = Quaternion(0.7, 0.7, 0, 0)  # 90* around X axis (W, X, Y, Z)
+        grasp_quat = quaternion_multiply(rot_quat, Quaternion(0.5, 0.5, 0.5, 0.5))
+
+        grasp_pose = self.object_pose
+        grasp_pose.position.x -= 0.4
+        grasp_pose.position.z += 0.05
+        grasp_pose.orientation = grasp_quat
+
+        self.move_group.set_pose_target(grasp_pose)
+        self.move_group.go(wait=True)
+        self.move_group.stop()
+        self.move_group.clear_pose_targets()
+        rospy.sleep(2)
+
+        grasp_pose.position.x += 0.1
+
+        rospy.loginfo('grasp pose')
+        self.move_group.set_pose_target(grasp_pose)
+        self.move_group.go(wait=True)
+        self.move_group.stop()
+        self.move_group.clear_pose_targets()
+
         rospy.sleep(2)
     
     def top_down_approach_grasping(self):
         # grasp_pose = Pose()
         grasp_pose = self.object_pose
         # grasp_pose.position.x -= 0.2
-        grasp_pose.position.y -= 0.06
+        grasp_pose.position.y -= 0.07
         grasp_pose.position.z += 0.3
         grasp_pose.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5) # pointing downwards !!!
 
@@ -91,7 +115,7 @@ class PickUpItem(smach.State):
         self.move_group.clear_pose_targets()
         rospy.sleep(3)
 
-        grasp_pose.position.z -= 0.1
+        grasp_pose.position.z -= 0.05
 
         rospy.loginfo('grasp pose')
         self.move_group.set_pose_target(grasp_pose)
@@ -101,8 +125,20 @@ class PickUpItem(smach.State):
 
         rospy.sleep(2)
 
-
-
+    def determine_object_type(self):
+        # based on width length height its in my notion
+        print("TBD")
+        
+def quaternion_multiply(q0, q1):
+    x0, y0, z0, w0 = q0.x, q0.y, q0.z, q0.w
+    x1, y1, z1, w1 = q1.x, q1.y, q1.z, q1.w
+    
+    x = w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1
+    y = w0 * y1 + y0 * w1 + z0 * x1 - x0 * z1
+    z = w0 * z1 + z0 * w1 + x0 * y1 - y0 * x1
+    w = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
+    
+    return Quaternion(x, y, z, w)
 
 def open_gripper():
     pub_gripper_controller = rospy.Publisher('/gripper_controller/command', JointTrajectory, queue_size=1)
