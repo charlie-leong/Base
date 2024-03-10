@@ -5,7 +5,7 @@
   <!-- <arg name="world"  default="$(find manipulate)/worlds/tables_and_item.world"/> -->
   <arg name="world"  default="$(find manipulate)/worlds/bowl.world"/>
 
-
+  <arg name="rviz"  default="true"/>
   <arg name="robot"  default="titanium"/>
   <arg name="arm"  default="$(eval {'iron': False}.get(arg('robot'), True))"/>
   <arg name="end_effector"  default="pal-gripper"/>
@@ -23,9 +23,15 @@
   <arg name="use_moveit_camera" default="false"/>
   <arg name="use_dynamic_footprint" default="false"/>
   <arg name="base_type" default="pmb2"/>
-  <arg name="advanced_grasping" default="false"/> <!-- Requires extra software from PAL Robotics -->
+  <arg name="advanced_grasping" default="false"/> 
   <arg name="paused" default="false"/>
   <env name="LC_NUMERIC" value="C" />
+
+  <!-- NEW SHIT -->
+  <!-- <arg name="planner"        default="base"/>
+  <arg name="global_planner" default="global_planner"/>
+  <arg name="local_planner"  default="$(eval 'teb' if (arg('public_sim') or arg('base_type')=='omni_base') else 'pal')"/>
+  <arg name="mapping"        default="$(eval 'gmapping' if arg('public_sim') else 'karto')"/> -->
 
   <!-- start up world -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -70,5 +76,24 @@
   <node name="image_proc" pkg="image_proc" type="image_proc" ns="xtion/rgb"/>
   <node pkg="manipulate" type="item_manager.py" name="itemservice" output="screen"/> 
   <node pkg="lasr_vision_yolov8" name="service" type="service" output="screen"/>
+  <node pkg="tf_module" name="tf_transforms_base" type="tf_transforms_base.py" required="true"/>
+
+  <!-- <group if="$(arg rviz)">
+      <node name="pick_demo_rviz" pkg="rviz" type="rviz" args="-d $(find manipulate)/rviz/tiago_pick_demo.rviz" />
+  </group> -->
+  
+  
+  <!-- <node name="map_server" pkg="map_server" type="map_server" /> -->
+  <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find manipulate)/rviz/config.rviz"/> -->
+
+   <!-- <node pkg="sensor_node_pkg" type="sensor_node_type" name="sensor_node_name" output="screen">
+    <param name="sensor_param" value="param_value" />
+ </node>
+ <node pkg="odom_node_pkg" type="odom_node_type" name="odom_node" output="screen">
+    <param name="odom_param" value="param_value" />
+ </node>
+ <node pkg="transform_configuration_pkg" type="transform_configuration_type" name="transform_configuration_name" output="screen">
+    <param name="transform_configuration_param" value="param_value" />
+ </node> -->
 
 </launch>

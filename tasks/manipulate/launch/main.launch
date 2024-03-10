@@ -21,6 +21,10 @@
   <node pkg="manipulate" type="item_manager.py" name="itemservice" output="screen"/> 
   <!-- <node pkg="prj" name="look_at_my_hand" type="look_hand.py" output="screen"/>  -->
 
+   <group if="$(arg rviz)">
+      <node name="pick_demo_rviz" pkg="rviz" type="rviz" args="-d $(find tiago_pick_demo)/config/rviz/tiago_pick_demo.rviz" />
+  </group>
+
 
 </launch>
 

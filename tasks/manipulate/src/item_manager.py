@@ -23,8 +23,8 @@ item_coords_dict = {
     "test": [0.65, -0.04998, 0.86445],
     "cylinder": [0.537632, -0.210692, 0.626178],
     "cup": [0.6, 0, 0.815],
-    "bowl": [0.6, 0, 0.6],
-    "hammer": [0.6, 0, 0.6]
+    "bowl": [0.8, 0, 0.6],
+    "hammer": [0.8, 0, 0.6]
 }
 
 rospy.init_node("itemservice")  # create node roomservice

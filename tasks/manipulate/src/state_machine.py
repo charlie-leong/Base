@@ -6,7 +6,7 @@ import smach
 from manipulate.srv import GetItemCoords
 from smach_ros import ServiceState
 from states.PickUpState import PickUpItem
-from states.LookAtObject import LookForItem
+# from states.LookAtObject import LookForItem
 # from states.GoToState import GoToPoint
 
 

@@ -3,12 +3,11 @@
 import rospy
 from geometry_msgs.msg import Pose, Quaternion
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-import moveit_commander
-import sys
+import numpy as np
 import smach
 
 from lasr_vision_msgs.srv import YoloDetection, YoloDetectionRequest
-from sensor_msgs.msg import Image, PointCloud2
+from sensor_msgs.msg import Image, PointCloud2, point_cloud2
 from control_msgs.msg import PointHeadActionGoal
 
 
@@ -64,3 +63,25 @@ class LookForItem(smach.State):
                 ud.coord_data = detection.xyseg
                 return True
         return False
+
+    def estimate_coords(seg, pc):
+        depth_data = point_cloud2.read_points(pc, field_names=("x", "y", "z"), skip_nans=True)
+        depth_array = np.array(list(depth_data))
+
+        # Extract depth values for the coordinates of the person
+        person_depth_values_x = []
+        person_depth_values_y = []
+        person_depth_values_z = []
+        for cord in seg:
+            x, y, z = depth_array[cord]
+            person_depth_values_x.append(x)
+            person_depth_values_y.append(y)
+            person_depth_values_z.append(z)
+
+        # Calculate the average depth
+        average_depth_x = np.mean(person_depth_values_x)
+        average_depth_y = np.mean(person_depth_values_y)
+        average_depth_z = np.mean(person_depth_values_z)
+
+        return (average_depth_x, average_depth_y, average_depth_z)
+
