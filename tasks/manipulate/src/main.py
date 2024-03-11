@@ -69,46 +69,7 @@ def close_gripper():
         # interval to start next movement
         rospy.sleep(0.1)
 
-def goToObject(object_pose):
-    """
-        Puts the manipulator in the right position to take the object
-    Args:
-        object_pose (msg): get object pose
 
-    Returns:
-        response: operation success status
-    """
-    # get global variable
-    global move_group
-    global grasp_poserad
-
-    # define final orientation of the EE
-    object_pose.orientation = Quaternion(0.5, 0.5, 0.5, 0.5)
-
-    # set vertical pose of the EE taking care of its shape
-    # object_pose.position.z += 0.2
-
-    # save grasp pose
-    grasp_pose = object_pose
-
-    # define distance between EE & object
-    # grasp_pose.position.y -= 0.15
-    grasp_pose.position.x -= 0.1
-
-    # for some reason the code hinges on the existence of this line ??
-    object_pose.position.y -= 0.15
-
-    rospy.loginfo('PickObject - attempting to reach pre grasp pose')
-
-    move_group.set_pose_target(grasp_pose)
-    move_group.go(wait=True)
-    move_group.stop()
-    move_group.clear_pose_targets()
-    # print("go to object", object_pose)
-    # print("go to object", grasp_pose)
-    # object_pose.position.y = -0.2
-
-def pre_pick(object_pose):
     open_gripper()
 
     grasp_pose = object_pose
@@ -125,37 +86,18 @@ def pre_pick(object_pose):
 
     rospy.sleep(1)
 
-def pick(object_pose):
-    grasp_pose = object_pose
-    # grasp_pose.position.x += 0.05
-    grasp_pose.position.z -= 0.2
+def pick(grasp_pose):
 
-    # move to grasp_pose
-    rospy.loginfo('PickObject - move to grasp_pose...')
     move_group.set_pose_target(grasp_pose)
     move_group.go(wait=True)
     move_group.stop()
     move_group.clear_pose_targets()
+    rospy.sleep(3)
 
     #close gripper
     rospy.loginfo('PickObject - closing gripper...')
     close_gripper()
     rospy.sleep(2)
-    # print("pick", object_pose)
-
-
-def lift(object_pose):
-    rospy.loginfo('lifting !')
-
-    post_grasp_pose = object_pose
-    post_grasp_pose.position.z += 0.3
-    move_group.set_pose_target(post_grasp_pose)
-    move_group.go(wait=True)
-
-    rospy.sleep(1)
-
-    rospy.loginfo('PickObject - Done.')
-    # print("lift", object_pose)
 
 
 def place(object_pose):
@@ -319,12 +261,3 @@ move_group.clear_pose_targets()
 
 # move_group.set_pose_target(pose_3)
 # move_group.go(wait=True)
-
-# goToObject(object_pose)
-# rospy.sleep(2)
-# pre_pick(object_pose)
-# rospy.sleep(2)
-# pick(object_pose)
-# lift(object_pose)
-# place(object_pose)
-# open_gripper()
