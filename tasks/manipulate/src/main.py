@@ -120,7 +120,12 @@ print("AH")
 
 open_gripper()
 
-
+def send_target(pose):
+    move_group.set_pose_target(pose)
+    move_group.go(wait=True)
+    move_group.stop()
+    move_group.clear_pose_targets()
+    rospy.sleep(2)
 
 
 
@@ -148,6 +153,8 @@ def quaternion_multiply(q0, q1):
     w = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
     
     return Quaternion(x, y, z, w)
+
+
 
 pose_1 = Pose()
 pose_1.position.x = 0.6
@@ -178,6 +185,8 @@ move_group.set_pose_target(object_pose)
 move_group.go(wait=True)
 rospy.sleep(3)
 
+print("yah")
+
 #hammer
 # move_group.set_pose_target(pose_1)
 # move_group.go(wait=True)
@@ -192,15 +201,13 @@ rospy.sleep(3)
 #rotate
 rot_quat = Quaternion(0.7, 0.7, 0, 0)  # 90* around X axis (W, X, Y, Z)
 grasp_quat = quaternion_multiply(rot_quat, Quaternion(0.5, 0.5, 0.5, 0.5)) #HOLY FUCKING SHIT
-# print(grasp_quat)
+print(grasp_quat)
 
 # print("1")
-# bowl_next = object_pose
-# bowl_next.position.x -= 0.06
-# bowl_next.orientation = grasp_quat
-# move_group.set_pose_target(bowl_next)
-# move_group.go(wait=True)
-# rospy.sleep(3)
+bowl_next = object_pose
+bowl_next.position.x -= 0.06
+bowl_next.orientation = grasp_quat
+send_target(bowl_next)
 
 
 # hammer
@@ -231,33 +238,24 @@ pose.position.y = -0
 pose.position.z = 0.66
 pose.orientation = grasp_quat
 
-move_group.set_pose_target(pose)
-move_group.go(wait=True)
-move_group.stop()
-move_group.clear_pose_targets()
-rospy.sleep(2)
+send_target(pose)
 
 print("3")
 pick_pose = Pose()
-pick_pose.position.x = 0.60
+pick_pose.position.x = 0.59
 pick_pose.position.y = -0
 pick_pose.position.z = 0.66
 pick_pose.orientation = grasp_quat
-
-move_group.set_pose_target(pick_pose)
-move_group.go(wait=True)
-move_group.stop()
-move_group.clear_pose_targets()
-rospy.sleep(3)
+send_target(pick_pose)
 
 close_gripper()
 rospy.sleep(2)
 # pick_pose.position.x += 0.5
 pick_pose.position.z += 0.3
-move_group.set_pose_target(pick_pose)
-move_group.go(wait=True)
-move_group.stop()
-move_group.clear_pose_targets()
+# move_group.set_pose_target(pick_pose)
+# move_group.go(wait=True)
+# move_group.stop()
+# move_group.clear_pose_targets()
 
 # move_group.set_pose_target(pose_3)
 # move_group.go(wait=True)

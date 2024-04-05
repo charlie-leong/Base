@@ -6,12 +6,12 @@ import smach
 from manipulate.srv import GetItemCoords
 from smach_ros import ServiceState
 from states.PickUpState import PickUpItem
-# from states.LookAtObject import LookForItem
-# from states.GoToState import GoToPoint
+from states.LookAtState import LookForItem
+from states.GetInfoState import GetObjectInformaion
 
 
 def main():
-    rospy.init_node('main_node')
+    # rospy.init_node('wait_huh')
     get_point = rospy.ServiceProxy('point_from_item', GetItemCoords)
     get_point.wait_for_service()
     rospy.logwarn('THIS IS BEING REACHED')
@@ -22,27 +22,28 @@ def main():
     with sm:
         smach.StateMachine.add('GET_ITEM_COORDS', ServiceState('point_from_item', GetItemCoords, 
                                     request_slots=['item'], response_slots=['coordinates']),
-                                    transitions={'succeeded': 'PICK_UP_ITEM', 'preempted': 'aborted'},
+                                    # transitions={'succeeded': 'PICK_UP_ITEM', 'preempted': 'aborted'},
+                                    transitions={'succeeded': 'LOOK_FOR_ITEM', 'preempted': 'aborted'},
                                     remapping={'item': 'first_item', 'coordinates': 'coord_data'}
                                     # remapping={'item': 'first_item'}
                                     )  
 
-        # smach.StateMachine.add('GO_TO_ITEM', GoToPoint(robot), 
-        #                        transitions={'suceeded': 'finished', 'preempted': 'aborted'},
-        #                        remapping={'coord_input': 'coord_data'}
-        #                        )
-
-        # smach.StateMachine.add('LOOK_FOR_OBJECT', LookForItem(), 
-        #                        transitions={'suceeded': 'PICK_UP_ITEM', 'preempted': 'aborted'},
-        #                        remapping={'coord_input': 'coord_data'}
-        #                        )
-
-        smach.StateMachine.add('PICK_UP_ITEM', PickUpItem(), 
-                               transitions={'suceeded': 'finished', 'preempted': 'aborted'},
+        smach.StateMachine.add('LOOK_FOR_ITEM', LookForItem(), 
+                               transitions={'suceeded': 'GET_OBJECT_INFO', 'preempted': 'aborted'},
                                remapping={'coord_input': 'coord_data'}
                                )
 
-    sm.userdata.first_item = 'bowl'
+        smach.StateMachine.add('GET_OBJECT_INFO', GetObjectInformaion(), 
+                               transitions={'suceeded': 'PICK_UP_ITEM', 'preempted': 'aborted'},
+                            #    remapping={'coord_input': 'coord_data'}
+                               )
+
+        smach.StateMachine.add('PICK_UP_ITEM', PickUpItem(), 
+                               transitions={'suceeded': 'finished', 'preempted': 'aborted'},
+                            #    remapping={'coord_input': 'coord_data'}
+                               )
+
+    sm.userdata.first_item = 'pan'
     sm.execute()
 
 if __name__ == '__main__':

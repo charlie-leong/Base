@@ -144,7 +144,6 @@ def look_to_point(point):
             actual = translate_coord_to_map(AH, pcl.header)
             print("actual coordinates = " , actual)
 
-            ITR_w7(AH)
             # return actual  
 
             # if detection.name == "bowl":

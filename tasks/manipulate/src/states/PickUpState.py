@@ -10,7 +10,7 @@ import smach
 class PickUpItem(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['suceeded', 'preempted'],
-                             input_keys=['coord_data']
+                             input_keys=['coord_data', 'object_type']
                              )
         moveit_commander.roscpp_initialize(sys.argv)
         self.move_group = moveit_commander.MoveGroupCommander('arm_torso')
@@ -22,12 +22,17 @@ class PickUpItem(smach.State):
         self.removeBehindTable()
         rospy.sleep(2)
 
-        # self.object_pose = ud.coord_input
         self.object_pose = ud.coord_data
+
+        #fruit
+        # self.object_pose = ud.coord_data
+        # self.object_pose.position.x = 0.63
+        # self.object_pose.position.y = 0.15
+        # self.object_pose.position.z = 0.6
         
-        # object_type = self.determine_object_type()
-        object_type = "forward" #top, side, down
-        grasp_quat = Quaternion(0.5, 0.5, 0.5, 0.5) # starting quat that the robot has
+        object_type = ud.object_type
+        object_type = "forward" 
+        grasp_quat = Quaternion(0.5, 0.5, 0.5, 0.5) # deafult startomg quat during tuck position
 
         if object_type == "down":
             grasp_quat = self.lowered_approach_grasping()
@@ -36,13 +41,12 @@ class PickUpItem(smach.State):
         elif object_type == "top":
             grasp_quat = self.top_down_approach_grasping()
 
-        #close gripper
         rospy.loginfo('PickObject - closing gripper!')
         self.close_gripper()
 
         self.lift_item(grasp_quat)
-        # place(raised, self.move_group)
-        # open_gripper()
+        self.place(self.move_group)
+        self.open_gripper()
         return 'suceeded'
 
     def send_pose(self, pose):
@@ -64,14 +68,17 @@ class PickUpItem(smach.State):
 
         # "test": [0.65, -0.04998, 0.86445],
         grasp_pose = self.object_pose
+        grasp_pose.position.x += 0.1
         grasp_pose.position.y -= 0.2
         grasp_pose.position.z += 0.2
         grasp_pose.orientation = grasp_quat
 
+        print(grasp_pose)
+
         rospy.loginfo('pre grasp pose')
         self.send_pose(grasp_pose)
 
-        grasp_pose.position.z -= 0.2
+        grasp_pose.position.z -= 0.3
 
         rospy.loginfo('grasp pose')
         self.send_pose(grasp_pose)
@@ -89,9 +96,15 @@ class PickUpItem(smach.State):
         rot_quat = Quaternion(0.7, 0.7, 0, 0)  # 90* around X axis (W, X, Y, Z)
         grasp_quat = self.quaternion_multiply(rot_quat, Quaternion(0.5, 0.5, 0.5, 0.5))
 
+        # bowl_next = self.object_pose
+        # bowl_next.position.x -= 0.06
+        # bowl_next.orientation = grasp_quat
+        # self.send_pose(bowl_next)
+
         grasp_pose = self.object_pose
-        grasp_pose.position.x -= 0.4
-        grasp_pose.position.z += 0.05
+        grasp_pose.position.x -= 0.3
+        # grasp_pose.position.z += 0.06
+        grasp_pose.position.z += 0.055
         grasp_pose.orientation = grasp_quat
         print(grasp_pose)
 
@@ -107,8 +120,8 @@ class PickUpItem(smach.State):
     def top_down_approach_grasping(self):
         grasp_pose = self.object_pose
         # grasp_pose.position.x -= 0.2
-        grasp_pose.position.y -= 0.07
-        grasp_pose.position.z += 0.3
+        # grasp_pose.position.y -= 0.07
+        grasp_pose.position.z += 0.34
         grasp_pose.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5) # pointing downwards !!!
 
         rospy.loginfo('pre grasp pose')
@@ -181,7 +194,7 @@ class PickUpItem(smach.State):
             trajectory_points = JointTrajectoryPoint()
 
             # define the gripper joints configuration
-            trajectory_points.positions = [0.0, 0.0]
+            trajectory_points.positions = [0.015, 0.015]
 
             trajectory_points.time_from_start = rospy.Duration(1.0)
 
