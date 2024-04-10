@@ -2,10 +2,10 @@
 <!-- written by serge -->
 
 <launch>
-  <arg name="world"  default="$(find manipulate)/worlds/pan.world"/>
+  <!-- <arg name="world"  default="$(find manipulate)/worlds/pan.world"/> -->
   <!-- <arg name="world"  default="$(find manipulate)/worlds/fruit.world"/> -->
 
-  <!-- <arg name="world"  default="$(find manipulate)/worlds/tables_and_item.world"/> -->
+  <arg name="world"  default="$(find manipulate)/worlds/tables_and_item.world"/>
   <!-- <arg name="world"  default="$(find manipulate)/worlds/bowl.world"/> -->
   <!-- <arg name="world"  default="$(find manipulate)/worlds/test.world"/> -->
 

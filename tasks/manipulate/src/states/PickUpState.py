@@ -23,6 +23,7 @@ class PickUpItem(smach.State):
         rospy.sleep(2)
 
         self.object_pose = ud.coord_data
+        print(self.object_pose)
 
         #fruit
         # self.object_pose = ud.coord_data
@@ -31,7 +32,7 @@ class PickUpItem(smach.State):
         # self.object_pose.position.z = 0.6
         
         object_type = ud.object_type
-        object_type = "forward" 
+        object_type = "top" 
         grasp_quat = Quaternion(0.5, 0.5, 0.5, 0.5) # deafult startomg quat during tuck position
 
         if object_type == "down":
@@ -45,7 +46,7 @@ class PickUpItem(smach.State):
         self.close_gripper()
 
         self.lift_item(grasp_quat)
-        self.place(self.move_group)
+        self.place(self.object_pose)
         self.open_gripper()
         return 'suceeded'
 
@@ -119,15 +120,15 @@ class PickUpItem(smach.State):
     
     def top_down_approach_grasping(self):
         grasp_pose = self.object_pose
-        # grasp_pose.position.x -= 0.2
-        # grasp_pose.position.y -= 0.07
+        grasp_pose.position.x -= 0.2
+        grasp_pose.position.y -= 0.07
         grasp_pose.position.z += 0.34
         grasp_pose.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5) # pointing downwards !!!
 
         rospy.loginfo('pre grasp pose')
         self.send_pose(grasp_pose)
 
-        grasp_pose.position.z -= 0.05
+        grasp_pose.position.z -= 0.2
 
         rospy.loginfo('grasp pose')
         self.send_pose(grasp_pose)
@@ -135,10 +136,7 @@ class PickUpItem(smach.State):
         rospy.sleep(2)
         return Quaternion(0.5, -0.5, 0.5, 0.5) # upwards
 
-    def determine_object_type(self):
-        # based on width length height its in my notion
-        print("TBD")
-    
+
     def lift_item(self, lift_quat):
         lift_pose = self.object_pose
         lift_pose.position.y = -0.1
@@ -149,7 +147,7 @@ class PickUpItem(smach.State):
         rospy.loginfo('up !!')
         self.send_pose(lift_pose)
 
-        rospy.sleep(1)
+        # rospy.sleep(1)
         return lift_pose
         
     def quaternion_multiply(self, q0, q1):
@@ -194,7 +192,9 @@ class PickUpItem(smach.State):
             trajectory_points = JointTrajectoryPoint()
 
             # define the gripper joints configuration
-            trajectory_points.positions = [0.015, 0.015]
+            # trajectory_points.positions = [0.015, 0.015]
+            trajectory_points.positions = [0.01, 0.01]
+            # trajectory_points.positions = [0.0, 0.0]
 
             trajectory_points.time_from_start = rospy.Duration(1.0)
 
@@ -229,7 +229,7 @@ class PickUpItem(smach.State):
         place_pose = object_pose
         place_pose.position.z -= 0.2
         place_pose.position.y += 0.2
-        place_pose.orientation = Quaternion(0.5, 0.5, 0.5, 0.5)
+        place_pose.orientation = Quaternion(-0.5, 0.5, 0.5, 0.5) #Quaternion(0.5, 0.5, 0.5, 0.5)
         self.move_group.set_pose_target(place_pose)
         self.move_group.go(wait=True)
 

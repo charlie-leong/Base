@@ -11,6 +11,8 @@ from lasr_vision_msgs.srv import YoloDetection, YoloDetectionRequest
 from sensor_msgs import point_cloud2
 from geometry_msgs.msg import Pose, PointStamped, Point, PoseStamped
 from control_msgs.msg import PointHeadActionGoal
+from std_msgs.msg import String
+
 
 import tf2_ros
 from tf.transformations import *
@@ -22,7 +24,7 @@ from tf_module.srv import TfTransform, TfTransformRequest
 class GetObjectInformaion(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['suceeded', 'preempted'],
-                             input_keys=['coord_data', 'pcl'],
+                             input_keys=['seg', 'pcl'],
                              output_keys=['coord_data', "object_type"]
                              )
         LOOK_TO_POINT_AS_GOAL_TOPIC = '/head_controller/point_head_action/goal'
@@ -30,8 +32,8 @@ class GetObjectInformaion(smach.State):
 
     def execute(self, ud):
         pcl = ud.pcl
-        relative_coords = self.estimate_coords(ud, ud.coord_data, pcl)
-        actual = self.translate_coord_to_map(relative_coords, pcl.header)
+        relative_coords = self.estimate_coords(ud, ud.seg, pcl)
+        actual = self.translate_coord_to_map(ud, relative_coords, pcl.header)
         return 'suceeded'
     
     def estimate_coords(self, ud, seg, pc):
@@ -77,7 +79,7 @@ class GetObjectInformaion(smach.State):
         y_range = max(ys) - min(ys)
         z_range = max(zs) - min(zs)
         # print(x_range, y_range, z_range)
-        self.determine_object_type(x_range, y_range, z_range)
+        self.determine_object_type(ud, x_range, y_range, z_range)
 
         return (x_range, y_range, z_range)
     

@@ -35,15 +35,13 @@ def main():
 
         smach.StateMachine.add('GET_OBJECT_INFO', GetObjectInformaion(), 
                                transitions={'suceeded': 'PICK_UP_ITEM', 'preempted': 'aborted'},
-                            #    remapping={'coord_input': 'coord_data'}
                                )
 
         smach.StateMachine.add('PICK_UP_ITEM', PickUpItem(), 
                                transitions={'suceeded': 'finished', 'preempted': 'aborted'},
-                            #    remapping={'coord_input': 'coord_data'}
                                )
 
-    sm.userdata.first_item = 'pan'
+    sm.userdata.first_item = 'bowl'
     sm.execute()
 
 if __name__ == '__main__':
